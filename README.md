@@ -1,6 +1,6 @@
 # FEUP-MFES
 
-Exercises from the MFDES course classes.
+Exercises from the MFES course classes.
 
 ### Project Infos
 * **Date:** 4th Year, 1st Semester, 2019/2012
