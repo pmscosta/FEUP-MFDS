@@ -12,21 +12,15 @@ class {:autocontracts} Deque {
 
     predicate Valid()
     {
-        (0 <= size <= list.Length)
-        &&
-        (0 <= start < list.Length)
-        &&
-        (capacity == list.Length)
-        &&
-        (size == |elems|)
-        && 
-        (0 <= |elems| <= list.Length)
-        &&
-        if ((start + size) > list.Length)
-        then
-            (elems == list[start..] + list[..(start+size)%list.Length])
-        else
-            (elems == list[start..(start+size)])
+        // integrity constraints on concrete representation 
+        0 <= size <= list.Length  && 0 <= start < list.Length 
+        // abstraction relation
+        && capacity == list.Length 
+        && elems == 
+            if start + size <= list.Length 
+            then list[start..start + size]
+            else list[start..] + list[..size - (list.Length - start)]  
+                    
     }
  
     constructor (capacity: nat)
@@ -42,41 +36,57 @@ class {:autocontracts} Deque {
     }
  
     predicate method isEmpty()
-        ensures isEmpty() == (|elems| == 0)
+        ensures isEmpty() <==> elems == []
 
     {
         size == 0
     }
     
     predicate method isFull() 
-        requires !isEmpty() //devia ter isto aqui
-        ensures isFull() == (|elems| == capacity)
+        ensures isFull() <==> |elems| == capacity
     {
         size == list.Length
     }
  
     function method front() : T 
-        //requires 0 <= start <= size
         requires !isEmpty()
         ensures front() == elems[0]
     {
         list[start]
     }
  
-    function method back() : T {
+    function method back() : T 
+        requires !isEmpty()
+        ensures back() == elems[|elems| -1]
+    {
         list[(start + size - 1) % list.Length] 
     }
     
-    method push_back(x : T) {
+    method push_back(x : T) 
+        requires !isFull()
+        ensures elems == old(elems) + [x]
+        ensures back() == x
+    {
         list[(start + size) % list.Length] := x;
         size := size + 1;
+
+        //update ghost var
+        elems := elems + [x];
     }
  
-    method pop_back() {
+    method pop_back() 
+        requires !isEmpty()
+        ensures elems == old(elems[..|elems|-1])
+    {
         size := size - 1;
+        
+        elems := elems[..|elems|-1];
     }
  
-    method push_front(x : T) {
+    method push_front(x : T)
+        requires !isFull()
+        ensures elems == [x] + old(elems) 
+    {
         if start > 0 {
             start := start - 1;
         }
@@ -85,9 +95,15 @@ class {:autocontracts} Deque {
         }
         list[start] := x;
         size := size + 1;
+
+        //update ghost var
+        elems := [x] +  elems;
     }    
  
-    method pop_front() {
+    method pop_front() 
+      requires !isEmpty()
+      ensures elems == old(elems[1..]) 
+      {
         if start + 1 < list.Length {
             start := start + 1;
         }
@@ -95,11 +111,13 @@ class {:autocontracts} Deque {
             start := 0;
         }
         size := size - 1;
+
+        elems := elems[1..];
     } 
 }
  
 // A simple test scenario.
-method testDeque()
+method Main()
 {
     var q := new Deque(3);
     assert q.isEmpty();

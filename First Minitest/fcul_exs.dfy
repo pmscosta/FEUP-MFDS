@@ -62,7 +62,7 @@ method product (m: nat , n: nat ) returns ( res: nat )
 
         while n1 != 0 
             decreases n1
-            invariant res == (m  * (m - m1)) + (n - n1)
+            invariant res == (n  * (m - m1)) + (n - n1)
         {
             res := res + 1;
             n1 := n1 - 1;
