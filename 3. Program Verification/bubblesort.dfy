@@ -1,6 +1,7 @@
 method bubbleSort(a:array<int>)
   requires a.Length > 0
   ensures forall k:: forall l:: 0 <= k < l < a.Length ==> a[k] <= a[l]
+  ensures multiset(a[..]) == multiset(old(a[..]))
   modifies a
 {
   var i := a.Length - 1;
@@ -31,8 +32,10 @@ method bubbleSort(a:array<int>)
 method Main(){
 
     var a := new int[5];
-    a[0], a[1], a[2], a[3], a[4] := 3, 1, 7, 4, 9; 
+    a[0], a[1], a[2], a[3], a[4]:= 3, 1, 7, 4, 9; 
 
+    assert(a[..] == [3, 1, 7, 4, 9]);
     bubbleSort(a); 
-    print(a[0], a[1], a[2], a[3], a[4]);
+    print(a[0], a[1], a[2], a[3]);
+    assert(a[..] == [1, 3, 4, 7, 9]);
 }
